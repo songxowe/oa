@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softfactory.core.dao.VehicleUsageMapper">
+    <resultMap id="vehicleuse" type="com.softfactory.pojo.VehicleUsage">
+        <id property="id" column="id"/>
+        <result property="proposer" column="proposer"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="vuReason" column="vu_reason"/>
+        <result property="vuStart" column="vu_start"/>
+        <result property="vuEnd" column="vu_end"/>
+        <result property="currentStep" column="current_step"/>
+        <result property="taskId" column="task_id"/>
+        <association property="hrDept" javaType="com.softfactory.pojo.HrDept">
+            <id property="deptId" column="dept_id"/>
+            <result property="deptName" column="dept_name"/>
+        </association>
+        <association property="pubVehicle" javaType="com.softfactory.pojo.PubVehicle">
+            <id property="VId" column="v_id"/>
+            <result property="VNum" column="v_num"/>
+        </association>
+    </resultMap>
+
+    <sql id="pageSQLHead">
+        select v.*,h.DEPT_ID,h.DEPT_NAME,pv.V_ID,pv.V_NUM from  vehicle_usage v,hr_dept h,pub_vehicle pv
+    </sql>
+
+    <sql id="orderBy">
+        <if test="sort != null and order != null">
+            order by
+            <choose>
+                <when test="sort == 'id'">id</when>
+                <when test="sort == 'proposer'">proposer</when>
+                <when test="sort == 'applyDate'">apply_date</when>
+            </choose>
+
+            <if test="order == 'asc'">asc</if>
+            <if test="order == 'desc'">desc</if>
+        </if>
+    </sql>
+
+    <sql id="WhereCase">
+        <where>
+            1=1
+            <if test="proposer != null and proposer != ''">
+                and proposer like CONCAT(CONCAT('%',#{proposer}),'%')
+            </if>
+            <if test="beginDate != null and endDate != null">
+                <![CDATA[ and apply_date >= #{beginDate} and apply_date <= #{endDate}]]>
+            </if>
+        </where>
+    </sql>
+
+    <sql id="pageSQLFoot">
+        limit #{pageNo},#{pageSize}
+    </sql>
+
+    <select id="findPager" resultMap="vehicleuse">
+        <include refid="pageSQLHead" />
+        <include refid="WhereCase" />
+        and v.dept_id = h.dept_id and v.v_id=pv.v_id
+        <include refid="orderBy" />
+        <include refid="pageSQLFoot" />
+    </select>
+
+    <select id="getTotal" resultType="long">
+        select count(id) from vehicle_usage
+        <include refid="WhereCase"/>
+    </select>
+
+    <select id="getLastId" resultType="int">
+        select @@IDENTITY
+    </select>
+
+    <select id="findById" resultMap="vehicleuse">
+        select v.*,h.DEPT_ID,h.DEPT_NAME,pv.V_ID,pv.V_NUM from  vehicle_usage v,hr_dept h,pub_vehicle pv
+         where v.dept_id = h.dept_id and v.v_id=pv.v_id and id=#{id}
+    </select>
+
+</mapper>

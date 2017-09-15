@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.softfactory.core.dao.PubNotifyReviceMapper">
+<!-- <resultMap type="com.softfactory.pojo.PubNotifyRevice" id="nr-result">
+	<id column="revice_id" property="reviceId"/>
+	<result column="to_id" property="toId"/>
+	<result column="read_id" property="readId"/>
+</resultMap> -->
+
+<resultMap type="com.softfactory.pojo.PubNotifyRevice" id="result">
+	<id column="revice_id" property="reviceId"/>
+	<result column="to_id" property="toId"/>
+	<result column="read_flag" property="readFlag"/>
+	<association property="pubNotify" javaType="com.softfactory.pojo.PubNotify">
+	<id column="notify_id" property="notifyId"/>
+	<result column="subject" property="subject"/>
+	<result column="content" property="content"/>
+	<result column="from_id" property="fromId"/>
+	<result column="create_time" property="createTime"/>
+	<result column="attachment" property="attachment"/>
+	<result column="notify_status" property="notifyStatus"/>
+		
+	</association>
+</resultMap>
+
+<sql id="pageSQLHead">
+		select revice_id,p.notify_id,subject,content,from_id,create_time,attachment,notify_status,read_flag 
+		from pub_notify p inner join pub_notify_revice pr on p.NOTIFY_ID=pr.NOTIFY_ID
+	</sql>
+
+	<sql id="orderBy">
+		<if test="sort != null and order != null">
+			order by
+			<choose>
+				<when test="sort == 'notifyId'">notify_id</when>
+				<when test="sort == 'subject'">subject</when>
+				<when test="sort == 'createTime'">create_time</when>
+				<otherwise>create_time</otherwise>
+			</choose>
+
+			<if test="order == 'asc'">asc</if>
+			<if test="order == 'desc'">desc</if>
+		</if>
+	</sql>
+
+	<sql id="WhereCase">
+		<where>
+			1=1 and delete_flag=1 and notify_status='正常'
+			<if test="toId != null">
+				and pr.to_id=#{toId}
+			</if>
+			<if test="subject != null and subject != ''">
+       			 and subject like CONCAT(CONCAT('%',#{subject}),'%')
+      		</if>
+      		<if test="beginDate != null and endDate != null">
+        		 and DATE_FORMAT(create_time,'%Y-%m-%d')
+        		 BETWEEN DATE_FORMAT(#{beginDate},'%Y-%m-%d') and DATE_FORMAT(#{endDate},'%Y-%m-%d')
+      		</if>
+			
+		</where>
+	</sql>
+
+	<sql id="pageSQLFoot">
+		limit #{pageno},#{pagesize}
+	</sql>
+
+	<select id="findPager" resultMap="result">
+		<include refid="pageSQLHead" />
+		<include refid="WhereCase" />
+		<include refid="orderBy" />
+		<include refid="pageSQLFoot" />
+	</select>
+
+	<select id="findPagerTotal" resultType="Integer">
+		select count(revice_id) from pub_notify p right join pub_notify_revice pr on p.NOTIFY_ID=pr.NOTIFY_ID
+		<include refid="WhereCase" />
+	</select>
+	
+	<select id="findList" resultMap="result">
+		<include refid="pageSQLHead" />
+		where pr.to_id=#{toId} and delete_flag=1 and notify_status='正常'
+		order by create_time desc limit 5
+	</select>
+
+	
+</mapper>

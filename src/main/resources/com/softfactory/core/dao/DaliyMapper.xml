@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.softfactory.core.dao.DaliyMapper">
+
+    <resultMap type="com.softfactory.pojo.Daliy" id="daily-result">
+        <id property="id" column="ID"/>
+        <result property="username" column="USERNAME"/>
+        <result property="priority" column="PRIORITY"/>
+        <result property="logDate" column="LOGIN_DATE"/>
+        <result property="classmate" column="CLASSMATE"/>
+        <result property="method" column="METHOD"/>
+        <result property="msg" column="MSG"/>
+    </resultMap>
+
+    <sql id="pageSQLHead">
+		select ID,USERNAME, PRIOPITY,LOGIN_DATE,CLASSMATE,METHOD,MSG
+		from  daliy
+	</sql>
+
+    <sql id="orderBy">
+        <if test="sort != null and order != null">
+            order by
+            <choose>
+                <when test="sort == 'id'">ID</when>
+            </choose>
+
+            <if test="order == 'asc'">asc</if>
+            <if test="order == 'desc'">desc</if>
+        </if>
+    </sql>
+
+    <sql id="WhereCase">
+        <where>
+            1=1
+            <if test="username != null and username != ''">
+                and username LIKE #{username}
+            </if>
+            <if test="classmate!=null and classmate !=''">
+                and classmate LIKE #{classmate}
+            </if>
+            <if test="beginDate != null and endDate != null">
+                and DATE_FORMAT(login_date,'%Y-%m-%d')
+                BETWEEN DATE_FORMAT(#{beginDate},'%Y-%m-%d') and DATE_FORMAT(#{endDate},'%Y-%m-%d')
+            </if>
+        </where>
+    </sql>
+
+    <sql id="pageSQLFoot">
+    limit #{pageno},#{pagesize}
+	</sql>
+
+    <select id="findPager" resultMap="daily-result">
+        <include refid="pageSQLHead"/>
+        <include refid="WhereCase"/>
+        <include refid="orderBy"/>
+        <include refid="pageSQLFoot"/>
+    </select>
+
+
+    <select id="findPagerTotal" resultType="Integer">
+        select count(id) from daliy
+        <include refid="WhereCase"/>
+    </select>
+</mapper>

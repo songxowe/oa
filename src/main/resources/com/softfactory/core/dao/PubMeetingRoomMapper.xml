@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softfactory.core.dao.PubMeetingRoomMapper">
+    <resultMap id="room-result" type="com.softfactory.pojo.PubMeetingRoom">
+        <id property="mrId" column="mr_id"/>
+        <result property="mrName" column="mr_name"/>
+        <result property="mrCapacity" column="mr_capacity"/>
+        <result property="mrDevice" column="mr_device"/>
+        <result property="mrDesc" column="mr_desc"/>
+        <result property="mrPlace" column="mr_place"/>
+        <result property="useingFalg" column="useing_falg"/>
+    </resultMap>
+
+    <sql id="pageSQLHead">
+        select * from pub_meeting_room
+    </sql>
+
+    <sql id="orderBy">
+        <if test="sort != null and order != null">
+            order by
+            <choose>
+                <when test="sort == 'mrId'">mr_id</when>
+                <when test="sort == 'mrName'">mr_name</when>
+                <when test="sort == 'mrCapacity'">mr_capacity</when>
+            </choose>
+
+            <if test="order == 'asc'">asc</if>
+            <if test="order == 'desc'">desc</if>
+        </if>
+    </sql>
+
+    <sql id="WhereCase">
+        <where>
+            1=1
+            <if test="mrName != null and mrName != ''">
+                and mr_name like CONCAT(CONCAT('%',#{mrName}),'%')
+            </if>
+        </where>
+    </sql>
+
+    <sql id="pageSQLFoot">
+        limit #{pageNo},#{pageSize}
+    </sql>
+
+    <select id="findPager" resultMap="room-result">
+        <include refid="pageSQLHead" />
+        <include refid="WhereCase" />
+        <include refid="orderBy" />
+        <include refid="pageSQLFoot" />
+    </select>
+
+    <select id="getTotal" resultType="long">
+        select count(mr_id) from pub_meeting_room
+        <include refid="WhereCase"/>
+    </select>
+
+    <select id="findById" resultMap="room-result">
+        select * from pub_meeting_room where mr_id=#{mrId}
+    </select>
+
+    <select id="findRoomList" resultMap="room-result">
+        select * from pub_meeting_room where USEING_FALG=0
+    </select>
+
+</mapper>

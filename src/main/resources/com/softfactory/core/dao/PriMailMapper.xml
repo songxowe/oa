@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softfactory.core.dao.PriMailMapper">
+
+	<cache eviction="LRU" flushInterval="6000" size="512" readOnly="true"></cache>
+
+
+	<resultMap type="com.softfactory.pojo.PriMail" id="PriMail-result">
+		
+			<id property="mailId" column="mail_Id" />
+			<result property="fromId" column="from_Id" />
+			<result property="toId" column="to_Id" />
+			<result property="copyTo" column="copy_To" />
+			<result property="secreatTo" column="secreat_To" />
+			<result property="subject" column="subject" />
+			<result property="content" column="content" />
+			<result property="sendTime" column="send_Time" />
+			<result property="attachment" column="attachment" />
+			<result property="sendFlag" column="send_Flag" />
+			<result property="smsRemind" column="sms_Remind" />
+			<result property="important" column="important" />
+			<result property="mailSize" column="mail_Size" />
+	</resultMap>
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.softfactory.core.dao.PriSmsToMapper">
+
+<resultMap type="com.softfactory.pojo.PriSmsTo" id="result">
+	<id column="sms_to_id" property="smsToId"/>
+	<result column="to_id" property="toId"/>
+	<result column="read_flag" property="readFlag"/>
+	<association property="priSms" javaType="com.softfactory.pojo.PriSms">
+		<id column="sms_id" property="smsId"/>
+		<result column="sms_type" property="smsType"/>
+		<result column="from_id" property="fromId"/>
+		<result column="content" property="content"/>
+		<result column="send_time" property="sendTime"/>
+	</association>
+</resultMap>
+<sql id="pageSQLHead">
+		select sms_to_id,pst.sms_id,content,from_id,send_time,sms_type,read_flag 
+		from pri_sms ps inner join pri_sms_to pst on ps.sms_id=pst.sms_id
+	</sql>
+	
+	<sql id="orderBy">
+		<if test="sort != null and order != null">
+			order by
+			<choose>
+				<when test="sort == 'smsType'">sms_type</when>
+				<when test="sort == 'smsId'">pst.sms_id</when>
+				<when test="sort == 'sendTime'">send_time</when>
+				<when test="sort == 'readFlag'">read_flag</when>
+				<otherwise>send_time</otherwise>
+			</choose>
+
+			<if test="order == 'asc'">asc</if>
+			<if test="order == 'desc'">desc</if>
+		</if>
+	</sql>
+
+	<sql id="WhereCase">
+		<where>
+			1=1 and delete_flag=1
+			<if test="fromId!=null">
+				and from_id=#{fromId}
+			</if>
+			<if test="readFlag!=null">
+				and read_flag=#{readFlag}
+			</if>
+			<if test="toId != null">
+				and pst.to_id=#{toId}
+			</if>
+			<if test="smsType != null and smsType != ''">
+       			 and sms_type like CONCAT(CONCAT('%',#{smsType}),'%')
+      		</if>
+      		<if test="beginDate != null and endDate != null">
+        		 and DATE_FORMAT(send_time,'%Y-%m-%d')
+        		 BETWEEN DATE_FORMAT(#{beginDate},'%Y-%m-%d') and DATE_FORMAT(#{endDate},'%Y-%m-%d')
+      		</if>
+			
+		</where>
+	</sql>
+
+	<sql id="pageSQLFoot">
+		limit #{pageno},#{pagesize}
+	</sql>
+
+	<select id="findPager" resultMap="result">
+		<include refid="pageSQLHead" />
+		<include refid="WhereCase" />
+		<include refid="orderBy" />
+		<include refid="pageSQLFoot" />
+	</select>
+
+	<select id="findPagerTotal" resultType="Integer">
+		select count(sms_to_id) from pri_sms ps right join pri_sms_to pst on ps.sms_id=pst.sms_id
+		<include refid="WhereCase" />
+	</select>
+	
+	<select id="findBySendTime" resultMap="result">
+		<include refid="pageSQLHead"/>
+		where <![CDATA[ send_time>#{newDate}]]> and read_flag=1 and to_id=#{toId} order by sms_to_id limit 1
+	</select>
+	
+	
+	
+</mapper>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softfactory.core.dao.PubNotifyMapper">
+<resultMap type="com.softfactory.pojo.PubNotify" id="notify-result">
+	<id column="notify_id" property="notifyId"/>
+	<result column="subject" property="subject"/>
+	<result column="content" property="content"/>
+	<result column="from_id" property="fromId"/>
+	<result column="create_time" property="createTime"/>
+	<result column="attachment" property="attachment"/>
+	<result column="notify_status" property="notifyStatus"/>
+
+</resultMap>
+
+<sql id="whereCase">
+    <where>
+      1=1 and notify_status='正常'
+      <if test="subject != null and subject != ''">
+        and subject like CONCAT(CONCAT('%',#{subject}),'%')
+      </if>
+      <if test="beginDate != null and endDate != null">
+        and DATE_FORMAT(create_time,'%Y-%m-%d')
+        BETWEEN DATE_FORMAT(#{beginDate},'%Y-%m-%d') and DATE_FORMAT(#{endDate},'%Y-%m-%d')
+      </if>
+    </where>
+  </sql>
+
+  <sql id="orderBy">
+    ORDER BY
+    <choose>
+      <when test="sort == 'subject'">subject</when>
+      
+      <when test="sort == 'createTime'">create_time</when>
+      <otherwise>create_time</otherwise>
+    </choose>
+
+    <if test="order == 'asc'">asc</if>
+    <if test="order == 'desc'">desc</if>
+  </sql>
+
+  <select id="findPager" resultMap="notify-result">
+    SELECT * FROM pub_notify
+    INNER JOIN (
+    SELECT notify_id FROM pub_notify
+    <include refid="whereCase"/>
+    <include refid="orderBy"/>
+    LIMIT #{page}, #{rows}
+    ) AS lim USING(notify_id)<include refid="orderBy"/>;
+  </select>
+
+  <select id="getTotal" resultType="int">
+    select COUNT(notify_id) from pub_notify
+    <include refid="whereCase"/>
+  </select>
+
+  <select id="findByParam" resultMap="notify-result">
+    select notify_id,subject,content,from_id,create_time,attachment,notify_status from pub_notify
+    <include refid="whereCase"/>
+  </select>
+ 
+</mapper>

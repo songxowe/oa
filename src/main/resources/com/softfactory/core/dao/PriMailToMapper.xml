@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softfactory.core.dao.PriMailToMapper">
+
+	<cache eviction="LRU" flushInterval="6000" size="512" readOnly="true"></cache>
+
+	<resultMap type="com.softfactory.pojo.PriMailTo" id="to-result">
+		<id property="mailToId" column="mail_To_Id" />
+		<result property="toId" column="to_Id" />
+		<result property="readFlag" column="read_Flag" />
+		<result property="deleteFlag" column="delete_Flag" />
+		
+		<association property="priMail" javaType="com.softfactory.pojo.PriMail" >
+			<id property="mailId" column="mail_Id" />
+			<result property="fromId" column="from_Id" />
+			<result property="toId" column="to_Id" />
+			<result property="copyTo" column="copy_To" />
+			<result property="secreatTo" column="secreat_To" />
+			<result property="subject" column="subject" />
+			<result property="content" column="content" />
+			<result property="sendTime" column="send_Time" />
+			<result property="attachment" column="attachment" />
+			<result property="sendFlag" column="send_Flag" />
+			<result property="smsRemind" column="sms_Remind" />
+			<result property="important" column="important" />
+			<result property="mailSize" column="mail_Size" />
+		</association>
+	</resultMap>
+
+<!-- 基本分页查询 -->
+	<sql id="pageSQLHead">
+		select p.*,t.* from pri_mail_to  t , pri_mail  p 
+	</sql>
+	<sql id="orderBy">
+		<if test="sort != null and order != null">
+			order by
+			<choose>
+				<when test="sort == 'sendTime'">SEND_TIME</when>
+				<otherwise>send_Time</otherwise>
+			</choose>
+			<if test="order == 'asc'">asc</if>
+			<if test="order == 'desc'">desc</if>
+		</if>
+	</sql>
+
+	<sql id="WhereCase">
+		<where>
+			1=1
+			<if test="(fromId != null and fromId != '' and sendFlag != null and sendFlag != '' ) or (deleteFlag != null and deleteFlag != '' and toId != null and toId != '')">
+				and ((p.from_Id =#{fromId} and  p.send_Flag =#{sendFlag}) or (t.to_Id =#{toId} and  t.delete_Flag =#{deleteFlag}))
+ 			</if>
+			<if test="important != null and important != ''">
+				and important like CONCAT(CONCAT('%',#{important}),'%')
+			</if>
+			<if test="readFlag != null and readFlag != ''">
+				and read_Flag =#{readFlag}
+			</if>
+			<if test="subject != null and subject != ''">
+				and subject like CONCAT(CONCAT('%',#{subject}),'%')
+			</if>
+			<if test="beginDate != null and endDate != null">
+				and DATE_FORMAT(SEND_TIME,'%Y-%m-%d') BETWEEN
+				DATE_FORMAT(#{beginDate},'%Y-%m-%d') and
+				DATE_FORMAT(#{endDate},'%Y-%m-%d')
+			</if>
+		</where>
+	</sql>
+
+
+	<sql id="pageSQLFoot">
+		limit #{pageno},#{pagesize}
+	</sql>
+
+	<select id="findPager" resultMap="to-result">
+		<include refid="pageSQLHead" />
+		<include refid="WhereCase" />
+			and	p.MAIL_ID=t.MAIL_ID
+		<include refid="orderBy" />
+		<include refid="pageSQLFoot" />
+	</select>
+
+	<select id="getTotal" resultType="Integer">
+		select count(t.MAIL_Id) from pri_mail  p ,pri_mail_to  t
+		<include refid="WhereCase" />
+		and p.MAIL_ID=t.MAIL_ID
+	</select>
+
+
+
+<select id="findBymailToId" resultType="Integer" resultMap="to-result" >
+select p.*,t.* from pri_mail  p , pri_mail_to  t where p.MAIL_ID=t.MAIL_ID and mail_To_Id=#{mailToId}
+	</select>
+
+<!-- 草稿箱专用分页查询 -->
+
+	<sql id="WhereCa">
+		<where>
+			1=1
+			<if test="fromId != null and fromId != '' ">
+				and from_Id =#{fromId}
+ 			</if>
+			<if test="toId != null and toId != '' ">
+				and to_Id =#{toId}
+ 			</if>
+			<if test="important != null and important != ''">
+				and important like CONCAT(CONCAT('%',#{important}),'%')
+			</if>
+		
+			<if test="subject != null and subject != ''">
+				and subject like CONCAT(CONCAT('%',#{subject}),'%')
+			</if>
+			<if test="beginDate != null and endDate != null">
+				and DATE_FORMAT(SEND_TIME,'%Y-%m-%d') BETWEEN
+				DATE_FORMAT(#{beginDate},'%Y-%m-%d') and
+				DATE_FORMAT(#{endDate},'%Y-%m-%d')
+			</if>
+
+		</where>
+	</sql>
+
+
+<select id="findDrafts" resultMap="to-result">
+		select  * from pri_mail  
+		<include refid="WhereCa" />
+		      and SEND_FLAG ='0'
+		 limit #{pageno},#{pagesize}
+	</select>
+
+<select id="findTotal" resultType="Integer">
+		select count(mail_Id) from pri_Mail
+		<include refid="WhereCa" />
+		 and SEND_FLAG ='0'
+	</select>
+
+<!-- 收件箱分页查询 -->
+
+
+<sql id="pageSQLHeadTwo">
+		select p.*,t.* from pri_mail_to  t , pri_mail  p 
+	</sql>
+	<sql id="orderByTwo">
+		<if test="sort != null and order != null">
+			order by
+			<choose>
+				<when test="sort == 'sendTime'">SEND_TIME</when>
+				<otherwise>send_Time</otherwise>
+			</choose>
+			<if test="order == 'asc'">asc</if>
+			<if test="order == 'desc'">desc</if>
+		</if>
+	</sql>
+
+	<sql id="WhereCaseTwo">
+		<where>
+			1=1
+			<if test="fromId != null and fromId != '' ">
+				and p.from_Id =#{fromId} 
+ 			</if> 
+			<if test="important != null and important != ''">
+				and important like CONCAT(CONCAT('%',#{important}),'%')
+			</if>
+			<if test="readFlag != null and readFlag != ''">
+				and read_Flag =#{readFlag}
+			</if>
+			
+			<if test="sendFlag != null and sendFlag != ''">
+				and  p.send_Flag =#{sendFlag}
+			</if>
+
+
+			and  t.delete_Flag =0
+
+			<if test="toId != null and toId != ''">
+				and t.to_Id =#{toId} 
+
+			</if>
+			
+			<if test="subject != null and subject != ''">
+				and subject like CONCAT(CONCAT('%',#{subject}),'%')
+			</if>
+			<if test="beginDate != null and endDate != null">
+				and DATE_FORMAT(SEND_TIME,'%Y-%m-%d') BETWEEN
+				DATE_FORMAT(#{beginDate},'%Y-%m-%d') and
+				DATE_FORMAT(#{endDate},'%Y-%m-%d')
+			</if>
+		</where>
+	</sql>
+
+
+	<sql id="pageSQLFootTwo">
+		limit #{pageno},#{pagesize}
+	</sql>
+
+	<select id="findPagerTwo" resultMap="to-result">
+		<include refid="pageSQLHeadTwo" />
+		<include refid="WhereCaseTwo" />
+			and	p.MAIL_ID=t.MAIL_ID
+		<include refid="orderByTwo" />
+		<include refid="pageSQLFootTwo" />
+	</select>
+
+	<select id="getTotalTwo" resultType="Integer">
+		select count(t.MAIL_Id) from pri_mail  p ,pri_mail_to  t
+		<include refid="WhereCaseTwo" />
+		and p.MAIL_ID=t.MAIL_ID
+	</select>
+
+	<select id="findreadCount" resultType="Integer">
+		select count(MAIL_TO_ID) from pri_mail_to where READ_FLAG=0 and TO_ID=#{userTrueName} and DELETE_FLAG=0
+	</select>
+
+</mapper>

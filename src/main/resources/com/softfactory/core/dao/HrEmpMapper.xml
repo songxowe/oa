@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.softfactory.core.dao.HrEmpMapper">
+    <resultMap id="emp-result" type="com.softfactory.pojo.HrEmp">
+        <id property="empId" column="emp_id"/>
+        <result property="empName" column="emp_name"/>
+        <result property="workId" column="work_id"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="nation" column="nation"/>
+        <result property="idCard" column="id_card"/>
+        <result property="photo" column="photo"/>
+        <result property="isMarry" column="is_marry"/>
+        <result property="politics" column="politics"/>
+        <result property="diploma" column="diploma"/>
+        <result property="title" column="title"/>
+        <result property="university" column="university"/>
+        <result property="speciality" column="speciality"/>
+        <result property="joinDate" column="join_date"/>
+        <result property="rank" column="rank"/>
+        <result property="telephone" column="telephone"/>
+        <result property="cellphone" column="cellphone"/>
+        <result property="email" column="email"/>
+        <result property="address" column="address"/>
+        <result property="remark" column="remark"/>
+        <result property="status" column="status"/>
+        <association property="hrDept" javaType="com.softfactory.pojo.HrDept">
+            <id property="deptId" column="dept_id"/>
+            <result property="deptName" column="dept_name"/>
+        </association>
+    </resultMap>
+
+    <sql id="pageSQLHead">
+        select e.*,d.DEPT_ID,d.DEPT_NAME from  hr_emp e,hr_dept d
+    </sql>
+
+    <sql id="orderBy">
+        <if test="sort != null and order != null">
+            order by
+            <choose>
+                <when test="sort == 'empId'">emp_id</when>
+                <when test="sort == 'empName'">emp_name</when>
+                <when test="sort == 'workId'">work_id</when>
+                <when test="sort == 'hrDept'">dept_id</when>
+                <when test="sort == 'joinDate'">join_date</when>
+                <when test="sort == 'rank'">rank</when>
+            </choose>
+
+            <if test="order == 'asc'">asc</if>
+            <if test="order == 'desc'">desc</if>
+        </if>
+    </sql>
+
+    <sql id="WhereCase">
+        <where>
+            1=1
+            <if test="empName != null and empName != ''">
+                and emp_name like CONCAT(CONCAT('%',#{empName}),'%')
+            </if>
+            <if test="workId != null and workId != ''">
+                and work_id like CONCAT(CONCAT('%',#{workId}),'%')
+            </if>
+            <if test="deptId != null and deptId > 0">
+                and e.dept_id = #{deptId}
+            </if>
+            <if test="beginDate != null and endDate != null">
+                <![CDATA[ and join_date >= #{beginDate} and join_date <= #{endDate}]]>
+            </if>
+            and status = #{status}
+        </where>
+    </sql>
+
+    <sql id="pageSQLFoot">
+        limit #{pageNo},#{pageSize}
+    </sql>
+
+    <select id="findPager" resultMap="emp-result">
+        <include refid="pageSQLHead" />
+        <include refid="WhereCase" />
+        and e.dept_id = d.dept_id
+        <include refid="orderBy" />
+        <include refid="pageSQLFoot" />
+    </select>
+
+    <select id="getTotal" resultType="long">
+        select count(e.emp_id) from hr_emp e
+        <include refid="WhereCase"/>
+    </select>
+
+
+    <insert id="add" parameterType="com.softfactory.pojo.HrEmp">
+        insert into hr_emp (EMP_NAME, WORK_ID, DEPT_ID, GENDER, BIRTHDAY, NATION, ID_CARD,
+        PHOTO, IS_MARRY, POLITICS, DIPLOMA, TITLE, UNIVERSITY, SPECIALITY, JOIN_DATE, RANK,
+        TELEPHONE, CELLPHONE, EMAIL, ADDRESS, REMARK,STATUS) values (#{empName},#{workId},#{hrDept.deptId},
+        #{gender},#{birthday},#{nation},#{idCard},#{photo},#{isMarry},#{politics},#{diploma},#{title},
+        #{university},#{speciality},#{joinDate},#{rank},#{telephone},#{cellphone},#{email},#{address},#{remark},#{status})
+    </insert>
+
+    <update id="modify" parameterType="com.softfactory.pojo.HrEmp">
+        update hr_emp set EMP_NAME=#{empName},WORK_ID=#{workId},DEPT_ID=#{hrDept.deptId},GENDER=#{gender},
+        BIRTHDAY=#{birthday},NATION=#{nation},ID_CARD=#{idCard},PHOTO=#{photo},IS_MARRY=#{isMarry},POLITICS=#{politics},
+        DIPLOMA=#{diploma},TITLE=#{title},UNIVERSITY=#{university},SPECIALITY=#{speciality},JOIN_DATE=#{joinDate},
+        RANK=#{rank},TELEPHONE=#{telephone},CELLPHONE=#{cellphone},EMAIL=#{email},ADDRESS=#{address},
+        REMARK=#{remark},STATUS=#{status} where EMP_ID=#{empId}
+    </update>
+
+    <select id="findById" resultMap="emp-result">
+        select e.*,d.DEPT_ID,d.DEPT_NAME from  hr_emp e,hr_dept d where e.dept_id = d.dept_id and e.emp_id=#{id}
+    </select>
+
+    <select id="getLastId" resultType="int">
+        select max(emp_id) from hr_emp
+    </select>
+
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.softfactory.core.dao.PubVehicleMapper">
+    <resultMap id="car-result" type="com.softfactory.pojo.PubVehicle">
+        <id property="VId" column="v_id"/>
+        <result property="VNum" column="v_num"/>
+        <result property="VType" column="v_type"/>
+        <result property="VDriver" column="v_driver"/>
+        <result property="VPrice" column="v_price"/>
+        <result property="buyDate" column="buy_date"/>
+        <result property="VRemark" column="v_remark"/>
+        <result property="VStatus" column="v_status"/>
+        <result property="useingFalg" column="useing_falg"/>
+    </resultMap>
+
+    <sql id="pageSQLHead">
+        select * from pub_vehicle
+    </sql>
+
+    <sql id="orderBy">
+        <if test="sort != null and order != null">
+            order by
+            <choose>
+                <when test="sort == 'VId'">v_id</when>
+                <when test="sort == 'VNum'">v_num</when>
+                <when test="sort == 'buyDate'">buy_date</when>
+                <when test="sort == 'VPrice'">v_price</when>
+            </choose>
+
+            <if test="order == 'asc'">asc</if>
+            <if test="order == 'desc'">desc</if>
+        </if>
+    </sql>
+
+    <sql id="WhereCase">
+        <where>
+            1=1
+            <if test="VNum != null and VNum != ''">
+                and v_num like CONCAT(CONCAT('%',#{VNum}),'%')
+            </if>
+            <if test="beginDate != null and endDate != null">
+                <![CDATA[ and buy_date >= #{beginDate} and buy_date <= #{endDate}]]>
+            </if>
+        </where>
+    </sql>
+
+    <sql id="pageSQLFoot">
+        limit #{pageNo},#{pageSize}
+    </sql>
+
+    <select id="findPager" resultMap="car-result">
+        <include refid="pageSQLHead" />
+        <include refid="WhereCase" />
+        <include refid="orderBy" />
+        <include refid="pageSQLFoot" />
+    </select>
+
+    <select id="getTotal" resultType="long">
+        select count(V_ID) from pub_vehicle
+        <include refid="WhereCase"/>
+    </select>
+
+    <select id="findById" resultMap="car-result">
+        select * from pub_vehicle where v_id=#{VId}
+    </select>
+
+    <select id="findCarList" resultMap="car-result">
+        select * from pub_vehicle where USEING_FALG=0
+    </select>
+
+</mapper>

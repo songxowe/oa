@@ -1,0 +1,47 @@
+﻿
+
+ 
+
+个别环境哟经常检查show variables like '%event_scheduler%';，确保此数据库权限已开就ok了
+
+开启event_scheduler sql指令：
+SET GLOBAL event_scheduler = ON;
+SET @@global.event_scheduler = ON;
+SET GLOBAL event_scheduler = 1;
+SET @@global.event_scheduler = 1;
+相反，关闭event_scheduler指令：
+
+SET GLOBAL event_scheduler = OFF;
+SET @@global.event_scheduler = OFF;
+SET GLOBAL event_scheduler = 0;
+SET @@global.event_scheduler = 0;
+
+/*************************/
+-- 1.创建过程
+
+DROP PROCEDURE IF EXISTS e_test;
+CREATE PROCEDURE e_test()
+
+    BEGIN
+      update pub_vote set vote_status='3' where now()> end_time and vote_status='2';
+
+    END
+
+;
+
+-- 接着执行
+SET GLOBAL event_scheduler = 1; 
+CREATE EVENT IF NOT EXISTS event_test
+
+ON SCHEDULE EVERY 1 SECOND
+
+ON COMPLETION PRESERVE  
+
+DO CALL e_test();
+
+-- 最后执行
+ALTER EVENT event_test ON  
+
+COMPLETION PRESERVE ENABLE;
+
+每次开启MySQL 执行  SET GLOBAL event_scheduler = ON;

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.softfactory.core.dao.PubVoteMapper" >
+  <resultMap id="BaseResultMap" type="com.softfactory.pojo.PubVote" >
+    <id column="vote_id" property="voteId" jdbcType="INTEGER" />
+    <result column="subject" property="subject" jdbcType="VARCHAR" />
+    <result column="descn" property="descn" jdbcType="VARCHAR" />
+    <result column="from_id" property="fromId" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="end_time" property="endTime" jdbcType="TIMESTAMP" />
+    <result column="to_dept" property="toDept" jdbcType="VARCHAR" />
+    <result column="to_rank" property="toRank" jdbcType="VARCHAR" />
+    <result column="to_id" property="toId" jdbcType="VARCHAR" />
+    <result column="can_view" property="canView" jdbcType="VARCHAR" />
+    <result column="vote_status" property="voteStatus" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    vote_id, subject, descn, from_id, create_time, end_time, to_dept, to_rank, to_id, 
+    can_view, vote_status
+  </sql>
+  
+  <!-- 两表内连接查询 -->
+  <resultMap type="com.softfactory.pojo.PubVote" id="pubvote_subs" extends="BaseResultMap">
+  	<collection property="subs" ofType="com.softfactory.pojo.PubVoteSub">
+  		<id column="sub_id" property="subId" jdbcType="INTEGER" />
+    	<result column="vote_id" property="voteId" jdbcType="INTEGER" />
+    	<result column="title" property="title" jdbcType="VARCHAR" />
+   	 	<result column="descn" property="descn" jdbcType="VARCHAR" />
+    	<result column="vote_count" property="voteCount" jdbcType="INTEGER" />
+  	</collection>
+  </resultMap>
+  
+  <select id="selectByPrimaryKey" resultMap="pubvote_subs" parameterType="java.lang.Integer" >
+    select p.*,s.*
+    from pub_vote p inner join pub_vote_sub s on p.vote_id=s.vote_id
+    where p.vote_id = #{voteId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from pub_vote
+    where vote_id = #{voteId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.softfactory.pojo.PubVote" >
+    insert into pub_vote (vote_id, subject, descn, 
+      from_id, create_time, end_time, 
+      to_dept, to_rank, to_id, 
+      can_view, vote_status)
+    values (#{voteId,jdbcType=INTEGER}, #{subject,jdbcType=VARCHAR}, #{descn,jdbcType=VARCHAR}, 
+      #{fromId,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, 
+      #{toDept,jdbcType=VARCHAR}, #{toRank,jdbcType=VARCHAR}, #{toId,jdbcType=VARCHAR}, 
+      #{canView,jdbcType=VARCHAR}, #{voteStatus,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.softfactory.pojo.PubVote" >
+    insert into pub_vote
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="voteId != null" >
+        vote_id,
+      </if>
+      <if test="subject != null" >
+        subject,
+      </if>
+      <if test="descn != null" >
+        descn,
+      </if>
+      <if test="fromId != null" >
+        from_id,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="endTime != null" >
+        end_time,
+      </if>
+      <if test="toDept != null" >
+        to_dept,
+      </if>
+      <if test="toRank != null" >
+        to_rank,
+      </if>
+      <if test="toId != null" >
+        to_id,
+      </if>
+      <if test="canView != null" >
+        can_view,
+      </if>
+      <if test="voteStatus != null" >
+        vote_status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="voteId != null" >
+        #{voteId,jdbcType=INTEGER},
+      </if>
+      <if test="subject != null" >
+        #{subject,jdbcType=VARCHAR},
+      </if>
+      <if test="descn != null" >
+        #{descn,jdbcType=VARCHAR},
+      </if>
+      <if test="fromId != null" >
+        #{fromId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null" >
+        #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="toDept != null" >
+        #{toDept,jdbcType=VARCHAR},
+      </if>
+      <if test="toRank != null" >
+        #{toRank,jdbcType=VARCHAR},
+      </if>
+      <if test="toId != null" >
+        #{toId,jdbcType=VARCHAR},
+      </if>
+      <if test="canView != null" >
+        #{canView,jdbcType=VARCHAR},
+      </if>
+      <if test="voteStatus != null" >
+        #{voteStatus,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update pub_vote
+    <set >
+      <if test="record.voteId != null" >
+        vote_id = #{record.voteId,jdbcType=INTEGER},
+      </if>
+      <if test="record.subject != null" >
+        subject = #{record.subject,jdbcType=VARCHAR},
+      </if>
+      <if test="record.descn != null" >
+        descn = #{record.descn,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fromId != null" >
+        from_id = #{record.fromId,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.endTime != null" >
+        end_time = #{record.endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.toDept != null" >
+        to_dept = #{record.toDept,jdbcType=VARCHAR},
+      </if>
+      <if test="record.toRank != null" >
+        to_rank = #{record.toRank,jdbcType=VARCHAR},
+      </if>
+      <if test="record.toId != null" >
+        to_id = #{record.toId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.canView != null" >
+        can_view = #{record.canView,jdbcType=VARCHAR},
+      </if>
+      <if test="record.voteStatus != null" >
+        vote_status = #{record.voteStatus,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update pub_vote
+    set vote_id = #{record.voteId,jdbcType=INTEGER},
+      subject = #{record.subject,jdbcType=VARCHAR},
+      descn = #{record.descn,jdbcType=VARCHAR},
+      from_id = #{record.fromId,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      end_time = #{record.endTime,jdbcType=TIMESTAMP},
+      to_dept = #{record.toDept,jdbcType=VARCHAR},
+      to_rank = #{record.toRank,jdbcType=VARCHAR},
+      to_id = #{record.toId,jdbcType=VARCHAR},
+      can_view = #{record.canView,jdbcType=VARCHAR},
+      vote_status = #{record.voteStatus,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.softfactory.pojo.PubVote" >
+    update pub_vote
+    <set >
+      <if test="subject != null" >
+        subject = #{subject,jdbcType=VARCHAR},
+      </if>
+      <if test="descn != null" >
+        descn = #{descn,jdbcType=VARCHAR},
+      </if>
+      <if test="fromId != null" >
+        from_id = #{fromId,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endTime != null" >
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="toDept != null" >
+        to_dept = #{toDept,jdbcType=VARCHAR},
+      </if>
+      <if test="toRank != null" >
+        to_rank = #{toRank,jdbcType=VARCHAR},
+      </if>
+      <if test="toId != null" >
+        to_id = #{toId,jdbcType=VARCHAR},
+      </if>
+      <if test="canView != null" >
+        can_view = #{canView,jdbcType=VARCHAR},
+      </if>
+      <if test="voteStatus != null" >
+        vote_status = #{voteStatus,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where vote_id = #{voteId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.softfactory.pojo.PubVote" >
+    update pub_vote
+    set subject = #{subject,jdbcType=VARCHAR},
+      descn = #{descn,jdbcType=VARCHAR},
+      from_id = #{fromId,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      to_dept = #{toDept,jdbcType=VARCHAR},
+      to_rank = #{toRank,jdbcType=VARCHAR},
+      to_id = #{toId,jdbcType=VARCHAR},
+      can_view = #{canView,jdbcType=VARCHAR},
+      vote_status = #{voteStatus,jdbcType=VARCHAR}
+    where vote_id = #{voteId,jdbcType=INTEGER}
+  </update>
+  
+  <!-- 封装数据:查询投票表时同时查出用户表 -->
+  <resultMap type="com.softfactory.pojo.PubVote" id="result-pubVote" extends="BaseResultMap">
+  	<association property="user" javaType="com.softfactory.pojo.User">
+  		<id property="id" column="ID" />
+		<result property="username" column="USERNAME" />
+		<result property="userTrueName" column="USER_TRUE_NAME"/>
+		<result property="password" column="PASSWORD" />
+		<result property="status" column="STATUS" />
+		<result property="photoPath" column="PHOTO_PATH" />
+		<result property="managerId" column="MANAGER_ID"/>
+  	</association>
+  </resultMap>
+  
+  <!-- EasyUI分页 -->
+  <sql id="whereCase">
+  	<where>
+  		1=1
+  		and vote_status=#{voteStatus}
+  		<if test="subject!=null and subject!=''">
+  			and subject like CONCAT(CONCAT('%',#{subject}),'%')
+  		</if>
+  		<if test="beginDate!=null and endDate!=null">
+  			<!-- 时间区间查询必须格式一致 and DATE_FORMAT(create_date,'%Y-%m-%d') between DATE_FORMAT(#{beginDate},'%Y-%m-%d') and DATE_FORMAT(#{endDate},'%Y-%m-%d') -->
+  			 and DATE_FORMAT(create_time,'%Y-%m-%d %h:%m:%s') between DATE_FORMAT(#{beginDate},'%Y-%m-%d %h:%m:%s') and DATE_FORMAT(#{endDate},'%Y-%m-%d %h:%m:%s')
+  			<!-- and create_time between #{beginDate} and #{endDate} -->
+  		</if>
+  	</where>
+  </sql>
+  <sql id="OrderBy">
+  	order by
+  	<choose>
+  		<when test="sort=='createTime'">create_time</when>
+  		<when test="sort=='endTime'">end_time</when>
+  		<otherwise>vote_id</otherwise>
+  	</choose>
+  	<if test="order=='desc'">desc</if>
+  	<if test="order=='asc'">asc</if>
+  </sql>
+  <select id="findPage" resultMap="BaseResultMap">
+  	select *
+  	from pub_vote inner join (select vote_id from pub_vote
+  	<include refid="whereCase"/>
+  	<include refid="OrderBy"/>
+  	limit #{start},#{rows}) as lim using(vote_id)
+  	<include refid="OrderBy"/>
+  </select>
+  <select id="getTotal" resultType="Integer">
+  	select count(vote_id) from pub_vote
+  	<include refid="whereCase"/>
+  </select>
+  <!-- *************************** -->
+  
+  <select id="findPageBefore" resultMap="result-pubVote">
+  	select v.*,u.* from pub_vote v inner join sys_users u on v.from_id=u.id
+  	<include refid="whereCase"/>
+  	<include refid="OrderBy"/>
+  	limit #{start},#{rows}
+  </select>
+  
+</mapper>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.softfactory.core.dao.PubVoteItemMapper" >
+  <resultMap id="BaseResultMap" type="com.softfactory.pojo.PubVoteItem" >
+    <id column="item_id" property="itemId" jdbcType="INTEGER" />
+    <result column="sub_id" property="subId" jdbcType="INTEGER" />
+    <result column="user_id" property="userId" jdbcType="INTEGER" />
+  </resultMap>
+  <insert id="add" parameterType="com.softfactory.pojo.PubVoteItem">
+  	insert into pub_vote_item(sub_id,user_id) values(#{subId},#{userId})
+  </insert>
+  
+  <!-- 查询用户是否已经投票 -->
+  <select id="findById" resultMap="BaseResultMap">
+  	select m.*
+from pub_vote v,pub_vote_sub s,pub_vote_item m
+where v.vote_id=s.vote_id and s.sub_id=m.sub_id and v.vote_id=#{voteId} and m.user_id=#{userId}
+  </select>
+</mapper>

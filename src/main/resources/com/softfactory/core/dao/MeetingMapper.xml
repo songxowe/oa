@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.softfactory.core.dao.MeetingMapper">
+    <resultMap id="meeting-result" type="com.softfactory.pojo.Meeting">
+        <id property="id" column="id"/>
+        <result property="proposer" column="proposer"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="MTopic" column="m_topic"/>
+        <result property="MDesc" column="m_desc"/>
+        <result property="MAttendee" column="m_attendee"/>
+        <result property="MStart" column="m_start"/>
+        <result property="MEnd" column="m_end"/>
+        <result property="currentStep" column="current_step"/>
+        <result property="taskId" column="task_id"/>
+        <association property="meetingRoom" javaType="com.softfactory.pojo.PubMeetingRoom">
+            <id property="mrId" column="mr_id"/>
+            <result property="mrName" column="mr_name"/>
+        </association>
+    </resultMap>
+
+    <sql id="pageSQLHead">
+        select m.*,pmr.mr_id,pmr.mr_name from  meeting m,pub_meeting_room pmr
+    </sql>
+
+    <sql id="orderBy">
+        <if test="sort != null and order != null">
+            order by
+            <choose>
+                <when test="sort == 'id'">id</when>
+                <when test="sort == 'proposer'">proposer</when>
+                <when test="sort == 'applyDate'">apply_date</when>
+                <when test="sort == 'MTopic'">m_topic</when>
+            </choose>
+
+            <if test="order == 'asc'">asc</if>
+            <if test="order == 'desc'">desc</if>
+        </if>
+    </sql>
+
+    <sql id="WhereCase">
+        <where>
+            1=1
+            <if test="proposer != null and proposer != ''">
+                and proposer like CONCAT(CONCAT('%',#{proposer}),'%')
+            </if>
+            <if test="MTopic != null and MTopic != ''">
+                and m_topic like CONCAT(CONCAT('%',#{MTopic}),'%')
+            </if>
+            <if test="beginDate != null and endDate != null">
+                <![CDATA[ and apply_date >= #{beginDate} and apply_date <= #{endDate}]]>
+            </if>
+        </where>
+    </sql>
+
+    <sql id="pageSQLFoot">
+        limit #{pageNo},#{pageSize}
+    </sql>
+
+    <select id="findPager" resultMap="meeting-result">
+        <include refid="pageSQLHead" />
+        <include refid="WhereCase" />
+        and m.m_room=pmr.mr_id
+        <include refid="orderBy" />
+        <include refid="pageSQLFoot" />
+    </select>
+
+    <select id="getTotal" resultType="long">
+        select count(id) from meeting
+        <include refid="WhereCase"/>
+    </select>
+
+    <select id="getLastId" resultType="int">
+        select @@IDENTITY
+    </select>
+
+    <select id="findById" resultMap="meeting-result">
+        select m.*,pmr.mr_id,pmr.mr_name from meeting m,pub_meeting_room pmr where m.m_room=pmr.mr_id and id=#{id}
+    </select>
+
+</mapper>
